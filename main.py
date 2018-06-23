@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import messages
 import vw_conf
 import time
