@@ -84,7 +84,12 @@ class time_resp(generic_response):
         return df.strftime('%Y-%m-%d %H:%M:%S')
 
 class analog_read_resp(generic_request):
-    data_length = 2
+    data_length = 4
+
+    def to_ohm(self, m):
+        if m == 0:
+            return 0
+        return 10.0 / (992.0 / m - 1)
 
     def __init__(self, msg):
         self.id = msg.id
@@ -94,12 +99,23 @@ class analog_read_resp(generic_request):
             raise WrongDataLength
 
         self.value = 0;
-        for i in range(analog_read_resp.data_length):
+        for i in range(2):
             self.value >>= 8
             self.value |= (self.data[i] << 8)
 
+        self.sigma = 0;
+        for i in range(2,4):
+            self.sigma >>= 8
+            self.sigma |= (self.data[i] << 8)
+
     def __str__(self):
-        return str(self.value)
+        return "%d sigma %d [%.2f %.2f %.2f]" % (
+                self.value,
+                self.sigma,
+                self.to_ohm(self.value - self.sigma),
+                self.to_ohm(self.value),
+                self.to_ohm(self.value + self.sigma)
+            )
 
 class blink_resp(generic_request):
     data_length = 0
