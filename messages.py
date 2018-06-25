@@ -1,7 +1,22 @@
 import time
 import datetime
+import atexit
 
 MSGID = 0
+
+try:
+    with open("msgid.txt") as id_file:
+        MSGID = int(id_file.readline())
+except:
+    pass
+
+def store_id():
+    global MSGID
+    with open("msgid.txt","w") as id_file:
+        id_file.write(str(MSGID))
+
+atexit.register(store_id)
+
 def get_new_message_id():
     global MSGID
     MSGID = (MSGID+1)%256;
