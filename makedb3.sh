@@ -1,0 +1,9 @@
+#!/bin/bash
+rrdtool create moisture.rrd --step 60 \
+DS:A0:GAUGE:3600:0:U \
+DS:A1:GAUGE:3600:0:U \
+DS:A2:GAUGE:3600:0:U \
+RRA:AVERAGE:0.5:60:24 \
+RRA:AVERAGE:0.5:360:28 \
+RRA:AVERAGE:0.5:1440:30 \
+RRA:AVERAGE:0.5:10080:52
