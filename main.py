@@ -31,6 +31,9 @@ while not exit:
         ms = int(args[2])
         response = messages.send_and_receive(messages.blink_req(pin, ms))
 
+    elif line == "dht":
+        response = messages.send_and_receive(messages.dht22_req())
+
     else:
         print("Wrong command")
 

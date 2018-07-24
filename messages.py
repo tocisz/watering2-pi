@@ -3,6 +3,7 @@ import datetime
 import atexit
 
 MSGID = 0
+MAX_RETRIES = 400
 
 try:
     with open("msgid.txt") as id_file:
@@ -65,6 +66,11 @@ class blink_req(generic_request):
         ]
         super(blink_req,self).__init__(blink_req.msg_type, data)
 
+class dht22_req(generic_request):
+    msg_type = 4
+    def __init__(self):
+        super(dht22_req,self).__init__(dht22_req.msg_type, [])
+
 class PacketTooShort(Exception):
     pass
 class WrongDataLength(Exception):
@@ -104,7 +110,7 @@ class analog_read_resp(generic_request):
     def to_ohm(self, m):
         if m == 0:
             return 0
-        return 10.0 / (992.0 / m - 1)
+        return 10.0 / (1024.0 / m - 1)
 
     def __init__(self, msg):
         self.id = msg.id
@@ -113,7 +119,7 @@ class analog_read_resp(generic_request):
         if len(self.data) != analog_read_resp.data_length:
             raise WrongDataLength
 
-        self.value = 0;
+        self.value = 0
         for i in range(2):
             self.value >>= 8
             self.value |= (self.data[i] << 8)
@@ -144,6 +150,25 @@ class blink_resp(generic_request):
 
     def __str__(self):
         return "OK"
+
+class dht22_resp(generic_request):
+    data_length = 4
+
+    def __init__(self, msg):
+        self.id = msg.id
+        self.type = msg.type
+        self.data = msg.data
+        if len(self.data) != dht22_resp.data_length:
+            raise WrongDataLength
+
+        self.temperature = self.data[0]
+        self.humidity = self.data[1]
+
+    def __str__(self):
+        return "%d %d" % (
+                self.temperature,
+                self.humidity
+            )
 
 import vw_conf as vw
 
@@ -182,13 +207,16 @@ def create_response_object(packet, req):
     elif req.type == blink_req.msg_type:
         return blink_resp(resp)
 
+    elif req.type == dht22_req.msg_type:
+        return dht22_resp(resp)
+
     return None
 
 def send_and_receive(req):
     b = req.to_bytes()
 
     retries = 0
-    while retries < 5:
+    while retries < MAX_RETRIES:
         if retries > 0:
             print("Retrying")
         retries += 1
