@@ -24,6 +24,10 @@ rrdtool graph graph/mhour.png -A --start -24h \
 DEF:a0=moisture.rrd:A0:AVERAGE \
 DEF:a1=moisture.rrd:A1:AVERAGE \
 DEF:a2=moisture.rrd:A2:AVERAGE \
-AREA:a2$YELLOW:"R max" \
-LINE2:a1$BLUE:"R avg" \
-AREA:a0#FFFFFF:"R min"
+CDEF:a10=0.9,a1,*,0.1,a0,*,+ \
+CDEF:a12=0.9,a1,*,0.1,a2,*,+ \
+AREA:a2$YELLOW:"avg(R) ± sigma" \
+AREA:a12$RED:"avg(R) ± sigma/10" \
+AREA:a10$YELLOW:"" \
+AREA:a0#FFFFFF:"" \
+LINE2:a1$BLUE:"avg(R)"
